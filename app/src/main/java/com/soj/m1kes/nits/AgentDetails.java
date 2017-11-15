@@ -1,6 +1,8 @@
 package com.soj.m1kes.nits;
 
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,7 +23,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.soj.m1kes.nits.adapters.recyclerview.models.AgentChildObject;
+import com.soj.m1kes.nits.models.AgentContact;
 
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.soj.m1kes.nits.util.ActionBarUtils.setupActionBar;
 
@@ -93,24 +99,128 @@ public class AgentDetails extends AppCompatActivity {
     private void setupOnlicks(){
 
         rootAddress.setOnClickListener(v -> {
-            Toast.makeText(context,"Clicked!",Toast.LENGTH_SHORT).show();
+            String uri = "http://maps.google.co.in/maps?q=" + agentChildObject.getAddress();
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            startActivity(intent);
         });
 
         rootOfficeID.setOnClickListener(v -> {
-            Toast.makeText(context,"Clicked!",Toast.LENGTH_SHORT).show();
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("OfficeID", agentChildObject.getOfficeID());
+            if(clipboard != null) {
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(context, "OfficeID Copied to Clipboard!", Toast.LENGTH_SHORT).show();
+            }
         });
 
         rootHelpDeskPin.setOnClickListener(v -> {
-            Toast.makeText(context,"Clicked!",Toast.LENGTH_SHORT).show();
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("HelpDeskPin", agentChildObject.getHelpDeskPin());
+            if(clipboard != null) {
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(context, "HelpDeskPin Copied to Clipboard!", Toast.LENGTH_SHORT).show();
+            }
         });
 
         rootContacts.setOnClickListener(v -> {
-            Toast.makeText(context,"Clicked!",Toast.LENGTH_SHORT).show();
+            showContactSelection();
         });
 
 
     }
 
+    private void showContactSelection(){
+
+        int size  = agentChildObject.getContacts().size() + 1;
+        CharSequence[] options = new CharSequence[size];
+        boolean[] isSelected = new boolean[size];
+
+        List<AgentContact> selectedContacts = new ArrayList<>();
+
+        for(int i = 0 ; i < agentChildObject.getContacts().size();i++ ){
+            AgentContact c = agentChildObject.getContacts().get(i);
+            options[i] = c.getName();
+            isSelected[i] = false;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Select contact")
+                .setMultiChoiceItems(options, isSelected, (dialog, which, isChecked) -> {
+
+                    if(isChecked){
+                        selectedContacts.add(agentChildObject.getContacts().get(which));
+                    }else if(selectedContacts.contains(agentChildObject.getContacts().get(which))){
+                        selectedContacts.remove(agentChildObject.getContacts().get(which));
+                    }
+
+                })
+                .setPositiveButton("Ok", (dialog, which) -> {
+
+                    if(selectedContacts.size() == 0){
+                        Toast.makeText(context,"Please choose at least 1 contact!",Toast.LENGTH_SHORT).show();
+                    }
+
+                    if(selectedContacts.size() == 1){
+                        //Show them the option to do something with a single contact
+
+                        showSingleOptions(selectedContacts.get(0));
+                        dialog.dismiss();
+                    }else{
+
+                        dialog.dismiss();
+                    }
+
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .show();
+
+
+    }
+
+    private void showSingleOptions(AgentContact contact){
+
+        CharSequence[] OPTIONS = new CharSequence[]{"Call","Email","Skype"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Options")
+                .setItems(OPTIONS, (dialog, which) -> {
+                    switch (which){
+
+                        case 0 : showCallIntent(contact.getNumber());
+                            break;
+
+                        case 1 : sendEmailIntent(contact.getEmail());
+                            break;
+                        case 2 :
+                            break;
+                        default:
+                    }
+                    dialog.dismiss();
+                })
+                .show();
+
+    }
+
+    private void showMultipleOptions(List<AgentContact> contacts){
+
+        CharSequence[] OPTIONS = new CharSequence[]{"Email","Skype"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Options")
+                .setItems(OPTIONS, (dialog, which) -> {
+                  switch (which){
+
+                      case 0 :
+                                break;
+
+                      case 1 :
+                                break;
+                      default:
+                  }
+                  dialog.dismiss();
+                })
+                .show();
+    }
 
     private void pickContact(int OPTION) {
         Intent pickContactIntent = new Intent( Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI );
