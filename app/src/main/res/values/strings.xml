@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">NITS</string>
+    <string name="agent_group_prompt">Choose BayNumber</string>
+
+
+    <string-array name="agentGroups">
+        <item>Cash</item>
+        <item>E-Payment</item>
+    </string-array>
+
+</resources>
