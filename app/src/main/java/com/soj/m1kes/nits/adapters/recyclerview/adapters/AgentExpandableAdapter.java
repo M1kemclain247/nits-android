@@ -56,10 +56,8 @@ public class AgentExpandableAdapter extends ExpandableRecyclerAdapter<AgentExpan
     @Override
     public void onBindParentViewHolder(AgentParentHolder holder, int i, Object parentObject) {
 
-
         AgentParentObject agentParentObject = (AgentParentObject) parentObject;
         holder.txtName.setText(agentParentObject.getName());
-
     }
 
     @Override

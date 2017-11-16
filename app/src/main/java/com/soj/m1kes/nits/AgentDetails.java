@@ -26,6 +26,7 @@ import com.soj.m1kes.nits.adapters.recyclerview.models.AgentChildObject;
 import com.soj.m1kes.nits.models.AgentContact;
 
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +42,7 @@ public class AgentDetails extends AppCompatActivity {
     private final int PICK_CONTACT_EDIT = 2005;
     private String phoneNo = "";
     EditText edt=null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,7 +133,13 @@ public class AgentDetails extends AppCompatActivity {
 
     private void showContactSelection(){
 
-        int size  = agentChildObject.getContacts().size() + 1;
+        if(agentChildObject.getContacts().size() == 0) return;
+
+
+
+        int size  = agentChildObject.getContacts().size();
+
+       // System.out.println("Size of contacts "+(size -1));
         CharSequence[] options = new CharSequence[size];
         boolean[] isSelected = new boolean[size];
 
@@ -139,6 +147,7 @@ public class AgentDetails extends AppCompatActivity {
 
         for(int i = 0 ; i < agentChildObject.getContacts().size();i++ ){
             AgentContact c = agentChildObject.getContacts().get(i);
+            System.out.println("C New : "+c);
             options[i] = c.getName();
             isSelected[i] = false;
         }
@@ -180,6 +189,8 @@ public class AgentDetails extends AppCompatActivity {
     }
 
     private void showSingleOptions(AgentContact contact){
+
+        System.out.println("Contact details : "+contact);
 
         CharSequence[] OPTIONS = new CharSequence[]{"Call","Email","Skype"};
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -229,9 +240,10 @@ public class AgentDetails extends AppCompatActivity {
     }
 
     private void showCallIntent(String phoneNo){
-            Intent intent = new Intent(Intent.ACTION_DIAL);
-            intent.setData(Uri.parse("tel:"+phoneNo));
-            startActivity(intent);
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        System.out.println("Phone number is : "+phoneNo);
+        intent.setData(Uri.parse("tel:"+phoneNo));
+        startActivity(intent);
     }
 
     private void sendEmailIntent(String email){
@@ -249,13 +261,14 @@ public class AgentDetails extends AppCompatActivity {
     }
 
     private boolean getAgentDetails(){
-        Bundle b = this.getIntent().getExtras();
+        //collect our intent
+        Intent intent = getIntent();
+        AgentChildObject agentContact = null;
+
         boolean notNull = true;
         try {
-            if (b != null)
-                agentChildObject = (AgentChildObject) b.getSerializable("agent_details");
-            else
-                notNull = false;
+            agentContact = intent.getParcelableExtra("agent_details");
+            this.agentChildObject = agentContact;
         }catch (Exception e){
             notNull = false;
             e.printStackTrace();

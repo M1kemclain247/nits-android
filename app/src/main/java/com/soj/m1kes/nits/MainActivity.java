@@ -78,16 +78,10 @@ public class MainActivity extends AppCompatActivity implements ChangeIPDialog.Cl
     private TextView txtEmpty;
     private ProgressBar progressBarSync;
 
-    OnAgentItemSelected onAgentItemSelected = new OnAgentItemSelected() {
-        @Override
-        public void onClick(int position, AgentChildObject agent) {
-            Intent i = new Intent();
-            Bundle b = new Bundle();
-            b.putSerializable("agent_details", agent);
-            i.putExtras(b);
-            i.setClass(context, AgentDetails.class);
-            startActivity(i);
-        }
+    OnAgentItemSelected onAgentItemSelected = (position, agent) -> {
+        Intent intent = new Intent(context, AgentDetails.class);
+        intent.putExtra("agent_details", agent);
+        startActivity(intent);
     };
 
 
@@ -236,13 +230,11 @@ public class MainActivity extends AppCompatActivity implements ChangeIPDialog.Cl
 
             @Override
             public void afterTextChanged(Editable s) {
-                // filter your list from your input
                 if(s.toString().equalsIgnoreCase("")){
                     setupRecyclerView();
                 }else{
                     filter(s.toString());
                 }
-                //you can use runnable postDelayed like 500 ms to delay search text
             }
         });
     }
@@ -250,14 +242,10 @@ public class MainActivity extends AppCompatActivity implements ChangeIPDialog.Cl
     void filter(String text){
         List<Agent> temp = new ArrayList();
         for(Agent p: AgentsAdapter.getAllAgents(context)){
-            //or use .equal(text) with you want equal match
-            //use .toLowerCase() for better matches
             if(Pattern.compile(Pattern.quote(text), Pattern.CASE_INSENSITIVE).matcher(p.getName()).find()){
                 temp.add(p);
             }
         }
-        //update recyclerview
-        //setupRecyclerView.updateList(temp);
         setupRecyclerView(temp);
     }
 

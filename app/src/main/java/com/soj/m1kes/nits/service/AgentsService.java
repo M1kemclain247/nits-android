@@ -235,7 +235,7 @@ public class AgentsService {
                         String contact_number = contactObject.getString("number");
                         int agent_id = contactObject.getInt("agent_id");
 
-                        contacts.add(new AgentContact(contact_id,contact_name,contact_email,contact_number,agent_id));
+                        contacts.add(new AgentContact(contact_id,contact_name,contact_number,contact_email,agent_id));
                     }
 
                     agents.add(new Agent(id, name, address, officeID, helpDeskPin, group, contacts,true));

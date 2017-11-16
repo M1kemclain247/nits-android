@@ -9,6 +9,7 @@ import android.net.Uri;
 import com.soj.m1kes.nits.models.AgentContact;
 import com.soj.m1kes.nits.sqlite.providers.DatabaseContentProvider;
 import com.soj.m1kes.nits.sqlite.tables.AgentContactsTable;
+import com.soj.m1kes.nits.sqlite.tables.AgentsTable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,10 +111,17 @@ public class AgentContactsAdapter {
     public static void addAll(List<AgentContact> contacts,Context context){
         //deleteAll(context);
         for(AgentContact c : contacts){
+            deleteForId(context,c.getAgent_id());
             addContact(c,context);
         }
     }
 
+    public static void deleteForId(Context context,int agent_id){
+
+        Uri contentUri = Uri.withAppendedPath(DatabaseContentProvider.CONTENT_URI, AgentContactsTable.TABLE_CONTACTS);
+        int rowsAffected =  context.getContentResolver().delete(contentUri,
+                AgentContactsTable.AGENT_ID+"=?",new String[]{String.valueOf(agent_id)});
+    }
 
 
 }

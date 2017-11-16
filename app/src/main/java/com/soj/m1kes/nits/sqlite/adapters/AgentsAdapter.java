@@ -47,13 +47,15 @@ public class AgentsAdapter {
 
                 AgentGroup group =  AgentGroupsAdapter.getAgentGroup(context,group_id);
 
+                List<AgentContact> contacts  =  AgentContactsAdapter.getContactsForAgent(context,id);
+
                 agent.setId(id);
                 agent.setName(agentName);
                 agent.setAddress(address);
                 agent.setOfficeID(officeID);
                 agent.setHelpDeskPin(helpDeskPin);
                 agent.setGroup(group);
-
+                agent.setContacts(contacts);
                 agent.setSynced(isSynced);
                 // Show phone number in Logcat
                 System.out.println("Loading from DB: " + agent.toString());
@@ -90,13 +92,15 @@ public class AgentsAdapter {
 
                 AgentGroup group =  AgentGroupsAdapter.getAgentGroup(context,group_id);
 
+                List<AgentContact> contacts  =  AgentContactsAdapter.getContactsForAgent(context,id);
+
                 agent.setId(id);
                 agent.setName(agentName);
                 agent.setAddress(address);
                 agent.setOfficeID(officeID);
                 agent.setHelpDeskPin(helpDeskPin);
                 agent.setGroup(group);
-
+                agent.setContacts(contacts);
                 agent.setSynced(isSynced);
                 // Show phone number in Logcat
                 System.out.println("Loading from DB: " + agent.toString());
@@ -158,6 +162,9 @@ public class AgentsAdapter {
                 AgentsTable.ID+"=?",new String[]{String.valueOf(agent.getId())});
 
         if(rowsAffected>0){
+
+            AgentContactsAdapter.addAll(agent.getContacts(),context);
+
             System.out.println("Successfully Updated Agent ");
         }else{
             System.out.println("Failed to Update Agent");
