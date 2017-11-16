@@ -22,7 +22,7 @@ public class AgentContactsTable implements Table{
     private static final String TABLE_CREATE = "create table "
             + TABLE_CONTACTS
             + "("
-            + ID + " integer , "
+            + ID + " integer PRIMARY KEY, "
             + NAME + " text, "
             + EMAIL + " text ,"
             + NUMBER + " text ,"

@@ -13,17 +13,19 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.soj.m1kes.nits.R;
+import com.soj.m1kes.nits.models.AgentContact;
 
 public class AddContactDialog extends android.app.DialogFragment {
 
     public interface ClickListener {
-         void onOk(DialogFragment dialog, EditText editName,EditText editNumber,EditText editEmail);
+         void onOk(DialogFragment dialog, AgentContact contact);
          void onCancel(DialogFragment dialog);
     }
 
     private ClickListener mListener;
     private String name = null;
     private String number = null;
+    private int agent_id = 0;
 
     @Override
     public void onAttach(Activity activity) {
@@ -42,6 +44,7 @@ public class AddContactDialog extends android.app.DialogFragment {
         if(getArguments() != null) {
             name = getArguments().getString("name");
             number = getArguments().getString("number");
+            agent_id = getArguments().getInt("agent_id");
         }
     }
 
@@ -99,7 +102,12 @@ public class AddContactDialog extends android.app.DialogFragment {
                 EditText editName = (EditText) d.findViewById(R.id.txtContactName);
                 EditText editNumber = (EditText) d.findViewById(R.id.txtContactNumber);
                 EditText editEmail = (EditText) d.findViewById(R.id.txtContactEmail);
-                mListener.onOk(AddContactDialog.this, editName, editNumber, editEmail);
+
+                String name = editName.getText().toString();
+                String number = editNumber.getText().toString();
+                String email = editEmail.getText().toString();
+
+                mListener.onOk(AddContactDialog.this, new AgentContact(0,name,number,email,agent_id));
 
             });
 

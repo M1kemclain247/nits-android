@@ -24,6 +24,7 @@ public class WebResources {
 
     public static final String URL_POST_JOB="AddJob";
     public static final String URL_POST_AGENT = "AddAgent";
+    public static final String URL_POST_CONTACT = "AddContact";
     public static final String URL_POST_AGENT_PAIR = "AddAgentPair";
     public static final String URL_UPDATE_AGENT = "UpdateAgent";
     public static final String URL_UPDATE_AGENT_PAIR = "UpdateAgentPair";
@@ -51,6 +52,11 @@ public class WebResources {
     public static String postJobUrl(Context context){
         String ip = IpPrefManager.getIpAddress(context);
         return URL_START + ip + ":"+PORT+ "/"+ URL_POST_JOB;
+    }
+
+    public static String postContactUrl(Context context){
+        String ip = IpPrefManager.getIpAddress(context);
+        return URL_START + ip + ":"+PORT+ "/"+ URL_POST_CONTACT;
     }
 
     public static String postAgentUrl(Context context){

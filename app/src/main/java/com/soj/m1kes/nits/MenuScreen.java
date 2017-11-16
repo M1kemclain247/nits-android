@@ -16,13 +16,17 @@ import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.soj.m1kes.nits.adapters.gridview.adapters.MenuAdapter;
+import com.soj.m1kes.nits.service.AgentContactsService;
 import com.soj.m1kes.nits.service.ServiceManager;
+import com.soj.m1kes.nits.service.objects.ServiceCallback;
+import com.soj.m1kes.nits.sqlite.adapters.AgentContactsAdapter;
 import com.soj.m1kes.nits.util.ActionBarUtils;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -39,13 +43,22 @@ public class MenuScreen extends AppCompatActivity {
     private LinearLayout parent_Slider;
     private SlidingUpPanelLayout sliding_layout;
     private ScrollView root_main;
+    private AgentContactsService service = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu_screen);
         ActionBarUtils.setupTitleOnlyActionBar("Main Menu",this);
-
+        service = new AgentContactsService(context);
+        service.addCallback(response -> {
+            if(response.contains("Added Contact Successfully")){
+                System.out.println("Contact synced with server");
+            }else if(response.contains("Failed to add new Contact")){
+                System.out.println("Contact failed to sync with server");
+            }
+        });
+        service.syncUnsyncedContacts();
 
         initGui();
         gridView = (GridView)findViewById(R.id.gridview);

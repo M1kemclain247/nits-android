@@ -5,20 +5,17 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,9 +23,11 @@ import android.widget.Toast;
 import com.soj.m1kes.nits.adapters.recyclerview.models.AgentChildObject;
 import com.soj.m1kes.nits.fragments.dialogs.AddContactDialog;
 import com.soj.m1kes.nits.models.AgentContact;
+import com.soj.m1kes.nits.service.AgentContactsService;
+import com.soj.m1kes.nits.service.objects.ServiceCallback;
+import com.soj.m1kes.nits.service.objects.ServiceManager;
+import com.soj.m1kes.nits.sqlite.adapters.AgentContactsAdapter;
 
-
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +38,7 @@ public class AgentDetails extends AppCompatActivity implements AddContactDialog.
     private TextView address,officeID,helpDeskPin;
     private AgentChildObject agentChildObject;
     private Context context = this;
+    private AgentContactsService service = null;
     private RelativeLayout rootAddress,rootOfficeID,rootHelpDeskPin,rootContacts,rootAddContact;
     private final int PICK_CONTACT_REQUEST = 2003;
 
@@ -50,6 +50,8 @@ public class AgentDetails extends AppCompatActivity implements AddContactDialog.
         if(getAgentDetails()) {
 
             initGui();
+            initListeners();
+
             setupActionBar(agentChildObject.getName(), this);
             Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
             toolbar.setTitle(agentChildObject.getName());
@@ -90,6 +92,12 @@ public class AgentDetails extends AppCompatActivity implements AddContactDialog.
 
 
         setupOnlicks();
+    }
+
+
+
+    private void initListeners(){
+        service = new AgentContactsService(context);
     }
 
     private void addFabButton(){
@@ -136,13 +144,15 @@ public class AgentDetails extends AppCompatActivity implements AddContactDialog.
     private void showCreateDialog(String ...args){
         DialogFragment dialog = new AddContactDialog();
 
-        if ( args.length == 2 ){
+        if ( args.length == 3 ){
             String name = args[0];
             String number = args[1];
+            int agent_id = Integer.parseInt(args[2]);
 
             Bundle b = new Bundle();
             b.putString("name",name);
             b.putString("number",number);
+            b.putInt("agent_id",agent_id);
             dialog.setArguments(b);
         }
         dialog.show(getFragmentManager(), "AddContact");
@@ -385,7 +395,7 @@ public class AgentDetails extends AppCompatActivity implements AddContactDialog.
                         String name = cursor.getString(nameIndex);
                         if(number!=null && name != null){
                             if(!number.equalsIgnoreCase("") && !name.equalsIgnoreCase("")){
-                                showCreateDialog(name,number);
+                                showCreateDialog(name,number,""+agentChildObject.getId());
                             }
                         }
                     }
@@ -398,13 +408,18 @@ public class AgentDetails extends AppCompatActivity implements AddContactDialog.
     }
 
     @Override
-    public void onOk(DialogFragment dialog, EditText editName, EditText editNumber, EditText editEmail) {
+    public void onOk(DialogFragment dialog, AgentContact contact) {
 
-        String name = editName.getText().toString();
-        String number = editNumber.getText().toString();
-        String email = editEmail.getText().toString();
+        service.addCallback(response -> {
+            if(response.contains("Added Contact Successfully")){
+                Toast.makeText(context,"Contacted Added!",Toast.LENGTH_SHORT).show();
+            }else if(response.contains("Failed to add new Contact")){
+                Toast.makeText(context,"Failed to add contact!",Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        Toast.makeText(context,"Name : " + name + " " + number + " " + email,Toast.LENGTH_SHORT).show();
+        service.addContact(contact);
+
         dialog.dismiss();
     }
 
