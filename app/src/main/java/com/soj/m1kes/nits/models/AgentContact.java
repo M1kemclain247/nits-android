@@ -3,8 +3,6 @@ package com.soj.m1kes.nits.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.io.Serializable;
-
 /**
  * Created by m1kes on 11/14/2017.
  */

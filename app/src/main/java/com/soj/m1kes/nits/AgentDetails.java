@@ -1,5 +1,6 @@
 package com.soj.m1kes.nits;
 
+import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -23,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.soj.m1kes.nits.adapters.recyclerview.models.AgentChildObject;
+import com.soj.m1kes.nits.fragments.dialogs.AddContactDialog;
 import com.soj.m1kes.nits.models.AgentContact;
 
 
@@ -32,17 +34,13 @@ import java.util.List;
 
 import static com.soj.m1kes.nits.util.ActionBarUtils.setupActionBar;
 
-public class AgentDetails extends AppCompatActivity {
+public class AgentDetails extends AppCompatActivity implements AddContactDialog.ClickListener{
 
     private TextView address,officeID,helpDeskPin;
     private AgentChildObject agentChildObject;
     private Context context = this;
-    private RelativeLayout rootAddress,rootOfficeID,rootHelpDeskPin,rootContacts;
+    private RelativeLayout rootAddress,rootOfficeID,rootHelpDeskPin,rootContacts,rootAddContact;
     private final int PICK_CONTACT_REQUEST = 2003;
-    private final int PICK_CONTACT_EDIT = 2005;
-    private String phoneNo = "";
-    EditText edt=null;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +76,8 @@ public class AgentDetails extends AppCompatActivity {
         rootOfficeID = (RelativeLayout)findViewById(R.id.rootOfficeID);
         rootHelpDeskPin = (RelativeLayout)findViewById(R.id.rootHelpDeskPin);
         rootContacts = (RelativeLayout) findViewById(R.id.rootContacts);
+        rootAddContact = (RelativeLayout)findViewById(R.id.rootAddContact);
+
 
         address = (TextView)findViewById(R.id.txtAddress);
         officeID = (TextView)findViewById(R.id.txtOfficeID);
@@ -128,8 +128,45 @@ public class AgentDetails extends AppCompatActivity {
             showContactSelection();
         });
 
-
+        rootAddContact.setOnClickListener(v -> {
+            showAddContactOptions();
+        });
     }
+
+    private void showCreateDialog(String ...args){
+        DialogFragment dialog = new AddContactDialog();
+
+        if ( args.length == 2 ){
+            String name = args[0];
+            String number = args[1];
+
+            Bundle b = new Bundle();
+            b.putString("name",name);
+            b.putString("number",number);
+            dialog.setArguments(b);
+        }
+        dialog.show(getFragmentManager(), "AddContact");
+    }
+
+    private void showAddContactOptions() {
+
+        CharSequence[] options = new CharSequence[]{"Add New", "Choose from Contacts"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Choose")
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+
+                        case 0 : showCreateDialog();
+                            break;
+                        case 1 : pickContact();
+                            break;
+                        default:
+
+                    }
+                }).show();
+    }
+
 
     private void showContactSelection(){
 
@@ -175,7 +212,7 @@ public class AgentDetails extends AppCompatActivity {
                         showSingleOptions(selectedContacts.get(0));
                         dialog.dismiss();
                     }else{
-
+                        showMultipleOptions(selectedContacts);
                         dialog.dismiss();
                     }
 
@@ -188,22 +225,37 @@ public class AgentDetails extends AppCompatActivity {
 
     }
 
-    private void showSingleOptions(AgentContact contact){
+    private void showSingleOptions(AgentContact c){
 
-        System.out.println("Contact details : "+contact);
+        System.out.println("Contact details : "+c);
 
-        CharSequence[] OPTIONS = new CharSequence[]{"Call","Email","Skype"};
+        CharSequence[] OPTIONS = new CharSequence[]{"Details","Call","Email","Export Details"};
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Options")
                 .setItems(OPTIONS, (dialog, which) -> {
                     switch (which){
 
-                        case 0 : showCallIntent(contact.getNumber());
+                        case 0 : showDetails(c);
                             break;
+                        case 1 : showCallIntent(c.getNumber());
+                            break;
+                        case 2 : sendEmailIntent(c.getEmail());
+                            break;
+                        case 3 :
 
-                        case 1 : sendEmailIntent(contact.getEmail());
-                            break;
-                        case 2 :
+                            StringBuilder sb = new StringBuilder();
+                                sb.append(c.getName()).append("\n")
+                                        .append(c.getNumber()).append("\n")
+                                        .append(c.getEmail()).append("\n");
+                                sb.append("\n\n");
+
+                            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                            ClipData clip = ClipData.newPlainText("ExportDetailsSingle", sb.toString());
+                            if(clipboard != null) {
+                                clipboard.setPrimaryClip(clip);
+                                Toast.makeText(context, "Content Copied to Clipboard!", Toast.LENGTH_SHORT).show();
+                            }
+
                             break;
                         default:
                     }
@@ -213,9 +265,21 @@ public class AgentDetails extends AppCompatActivity {
 
     }
 
+    private void showDetails(AgentContact c){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Details")
+                .setMessage("Name   :    " + c.getName() + "\n" +
+                            "Number :    " + c.getNumber() + "\n" +
+                            "Email  :    " + c.getEmail() + "\n");
+        builder.setNeutralButton("Close", (dialog, which) -> {
+            dialog.dismiss();
+        }).show();
+    }
+
     private void showMultipleOptions(List<AgentContact> contacts){
 
-        CharSequence[] OPTIONS = new CharSequence[]{"Email","Skype"};
+        CharSequence[] OPTIONS = new CharSequence[]{"Email","Skype","Export Details"};
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Options")
                 .setItems(OPTIONS, (dialog, which) -> {
@@ -226,6 +290,23 @@ public class AgentDetails extends AppCompatActivity {
 
                       case 1 :
                                 break;
+                      case 2 :
+                                StringBuilder sb = new StringBuilder();
+                                for(AgentContact c : contacts){
+                                    sb.append(c.getName()).append("\n")
+                                            .append(c.getNumber()).append("\n")
+                                            .append(c.getEmail()).append("\n");
+                                    sb.append("\n\n");
+                                }
+                              ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                              ClipData clip = ClipData.newPlainText("ExportDetails", sb.toString());
+                              if(clipboard != null) {
+                                  clipboard.setPrimaryClip(clip);
+                                  Toast.makeText(context, "Content Copied to Clipboard!", Toast.LENGTH_SHORT).show();
+                              }
+
+
+                                break;
                       default:
                   }
                   dialog.dismiss();
@@ -233,10 +314,10 @@ public class AgentDetails extends AppCompatActivity {
                 .show();
     }
 
-    private void pickContact(int OPTION) {
+    private void pickContact() {
         Intent pickContactIntent = new Intent( Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI );
         pickContactIntent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
-        startActivityForResult(pickContactIntent, OPTION);
+        startActivityForResult(pickContactIntent, PICK_CONTACT_REQUEST);
     }
 
     private void showCallIntent(String phoneNo){
@@ -299,42 +380,36 @@ public class AgentDetails extends AppCompatActivity {
                 if(cursor!=null) {
                     if (cursor.moveToFirst()) {
                         int phoneIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                        phoneNo = cursor.getString(phoneIndex);
-                        if(phoneNo!=null){
-                            if(!phoneNo.equalsIgnoreCase("")){
-
-                                //ADD Contact to agent
-
+                        int nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+                        String number = cursor.getString(phoneIndex);
+                        String name = cursor.getString(nameIndex);
+                        if(number!=null && name != null){
+                            if(!number.equalsIgnoreCase("") && !name.equalsIgnoreCase("")){
+                                showCreateDialog(name,number);
                             }
                         }
                     }
                     cursor.close();
-                    System.out.println(phoneNo);
-                    Toast.makeText(context, "Added a new Number: " + phoneNo, Toast.LENGTH_SHORT).show();
                 }else{
                     System.out.println("Failed to get the number cursor is null");
                 }
             }
-        }else if (requestCode == PICK_CONTACT_EDIT){
-            if ( resultCode == RESULT_OK ) {
-                Uri uri = intent.getData();
-                // handle the picked phone number in here.
-                Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-                if (cursor != null) {
-                    if (cursor.moveToFirst()) {
-                        int phoneIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                        phoneNo = cursor.getString(phoneIndex);
-
-                    }
-
-                }
-                if (cursor != null)
-                    cursor.close();
-
-                Toast.makeText(context,phoneNo,Toast.LENGTH_SHORT).show();
-                edt.setText(phoneNo);
-            }
         }
     }
 
+    @Override
+    public void onOk(DialogFragment dialog, EditText editName, EditText editNumber, EditText editEmail) {
+
+        String name = editName.getText().toString();
+        String number = editNumber.getText().toString();
+        String email = editEmail.getText().toString();
+
+        Toast.makeText(context,"Name : " + name + " " + number + " " + email,Toast.LENGTH_SHORT).show();
+        dialog.dismiss();
+    }
+
+    @Override
+    public void onCancel(DialogFragment dialog) {
+        dialog.dismiss();
+    }
 }
